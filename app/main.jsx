@@ -18,19 +18,23 @@ class Header extends React.Component {
 }
 
 class Body extends React.Component {
-	constructor() {
-		super()
-		this.state = {items:[{name:"mince"}, {name:"chicken"}]}
+	constructor(props) {
+		super(props)
+		this.state = {items:[]}
 	}
 	componentDidMount() {
 		axios.get('/api/item')
-			.then(function(response){
-				this.state = {items:response}
+			.then((response) => {
+				this.setState({items:response.data})
 			})
 	}
 	addItem(item){
 		this.setState((state)=>{
 			return state.items.push(item)
+		})
+		axios.post('/api/item', {
+			name: item.name,
+			category: item.category
 		})
 	}
 
@@ -49,7 +53,7 @@ class ItemList extends React.Component {
 			rows.push(<tr key={item.name}><td>{item.name}</td><td>{item.category}</td></tr>)
 		})
 		return (<table>
-			<thead><td>Item</td><td>Category</td></thead>
+			<thead><tr><td>Item</td><td>Category</td></tr></thead>
 			<tbody>{rows}</tbody>
 			</table>);
 
@@ -66,8 +70,8 @@ class ItemInput extends React.Component {
 		this.setState({[e.target.id]: e.target.value})
 	}
 	submitInput(){
-		this.props.addItem(this.state
-)	}
+		this.props.addItem(this.state)
+	}
 	render(){
 		return (		
 			<div>

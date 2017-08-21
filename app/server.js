@@ -24,7 +24,10 @@ router.get('/item', (req, res)=>{
 })
 router.post('/item', (req, res)=>{
 	console.log(req.body)
-	item = {"name": req.body.item}
+	item = {
+		"name": req.body.name,
+		"category": req.body.category
+	}
 	mydb.collection('items').insertOne(item)
 	res.sendStatus(200)
 })

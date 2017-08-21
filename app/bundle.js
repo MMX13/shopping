@@ -120,20 +120,22 @@
 	var Body = function (_React$Component3) {
 		_inherits(Body, _React$Component3);
 
-		function Body() {
+		function Body(props) {
 			_classCallCheck(this, Body);
 
-			var _this3 = _possibleConstructorReturn(this, (Body.__proto__ || Object.getPrototypeOf(Body)).call(this));
+			var _this3 = _possibleConstructorReturn(this, (Body.__proto__ || Object.getPrototypeOf(Body)).call(this, props));
 
-			_this3.state = { items: [{ name: "mince" }, { name: "chicken" }] };
+			_this3.state = { items: [] };
 			return _this3;
 		}
 
 		_createClass(Body, [{
 			key: 'componentDidMount',
 			value: function componentDidMount() {
+				var _this4 = this;
+
 				_axios2.default.get('/api/item').then(function (response) {
-					this.state = { items: response };
+					_this4.setState({ items: response.data });
 				});
 			}
 		}, {
@@ -141,6 +143,10 @@
 			value: function addItem(item) {
 				this.setState(function (state) {
 					return state.items.push(item);
+				});
+				_axios2.default.post('/api/item', {
+					name: item.name,
+					category: item.category
 				});
 			}
 		}, {
@@ -194,14 +200,18 @@
 						'thead',
 						null,
 						_react2.default.createElement(
-							'td',
+							'tr',
 							null,
-							'Item'
-						),
-						_react2.default.createElement(
-							'td',
-							null,
-							'Category'
+							_react2.default.createElement(
+								'td',
+								null,
+								'Item'
+							),
+							_react2.default.createElement(
+								'td',
+								null,
+								'Category'
+							)
 						)
 					),
 					_react2.default.createElement(
@@ -222,10 +232,10 @@
 		function ItemInput(props) {
 			_classCallCheck(this, ItemInput);
 
-			var _this5 = _possibleConstructorReturn(this, (ItemInput.__proto__ || Object.getPrototypeOf(ItemInput)).call(this, props));
+			var _this6 = _possibleConstructorReturn(this, (ItemInput.__proto__ || Object.getPrototypeOf(ItemInput)).call(this, props));
 
-			_this5.state = { name: "", category: "" };
-			return _this5;
+			_this6.state = { name: "", category: "" };
+			return _this6;
 		}
 
 		_createClass(ItemInput, [{
