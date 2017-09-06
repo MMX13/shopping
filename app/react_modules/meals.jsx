@@ -4,19 +4,31 @@ import axios from 'axios'
 export default class RecipesPage extends React.Component{
 	constructor(props){
 		super(props);
-		this.state = {"recipes": ["test"]}
+		this.state = {"recipes": ["test"], "showAddRecipe": false}
 	}
 
 	addRecipe(item){
 		this.setState((prev)=>{
-			return prev.recipes.push(item)
+			prev.recipes.push(item)
+			prev.showAddRecipe = false
+			return prev
+		})
+	}
+
+	toggleRecipeInput(){
+		this.setState(()=>{
+			return {"showAddRecipe": true}
 		})
 	}
 
 	render() {
 		return (<div>
-					<RecipeList recipes={this.state.recipes}/>
-					<NewRecipe addRecipe={this.addRecipe.bind(this)}/>
+					<RecipeList recipes={this.state.recipes}/>					
+					{ this.state.showAddRecipe ? 
+						<NewRecipe addRecipe={this.addRecipe.bind(this)}/> : 
+						<button onClick={this.toggleRecipeInput.bind(this)}>
+							Add New Recipe
+						</button>}
 				</div>)
 	}
 }
@@ -53,7 +65,6 @@ class NewRecipe extends React.Component{
 		})
 	}
 	updateInput(e){
-		//this.setState({e.target.name: e.target.value})
 		this.setState({[e.target.name]: e.target.value})
 	}
 
@@ -64,8 +75,10 @@ class NewRecipe extends React.Component{
 		})
 		return (
 			<div>
+				<hr/>
+				<h3>New Meal</h3>
 				<input name="mealname" value={this.state.mealname} onChange={this.updateInput.bind(this)}></input>
-				<h3>Ingredients</h3>
+				<h4>Ingredients</h4>
 				<table><tbody>{rows}</tbody></table>
 				<input name="ingredient" value={this.state.ingredient} onChange={this.updateInput.bind(this)}></input>
 				<button onClick={this.addItem.bind(this)}>Add</button><br/>
