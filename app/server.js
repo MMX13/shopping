@@ -17,19 +17,39 @@ var router = express.Router();
 router.get('/', (req, res)=>{
 	res.json({message: 'Welcome to the api!'})
 })
-router.get('/item', (req, res)=>{
+router.get('/items', (req, res)=>{
 	items = mydb.collection('items').find().toArray((err, arr)=>{
 		res.send(arr)	
 	})	
 })
-router.post('/item', (req, res)=>{
+router.get('/items/:item', (req, res)=>{
+	mydb.collection('items').findOne({"name":req.params.item}, (err, item)=>{
+		if(!item){
+			res.sendStatus(404)
+		}
+		else{
+			res.send(item)			
+		}
+	})
+})
+router.post('/items', (req, res)=>{
 	console.log(req.body)
 	item = {
 		"name": req.body.name,
 		"category": req.body.category
 	}
 	mydb.collection('items').insertOne(item)
-	res.sendStatus(200)
+	res.sendStatus(201)
+})
+router.get('/meals', (req, res)=>{
+	mydb.collection('meals').find().toArray((err, arr)=>{
+		res.send(arr)
+	})
+})
+router.post('/meals', (req, res)=>{
+	console.log(req.body)
+	mydb.collection('meals').insertOne(req.body)
+	res.sendStatus(201)
 })
 app.use('/api', router)
 

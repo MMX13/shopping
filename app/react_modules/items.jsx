@@ -7,13 +7,13 @@ export default class ItemsPage extends React.Component {
 		this.state = {items:[]}
 	}
 	componentDidMount() {
-		axios.get('/api/item')
+		axios.get('/api/items')
 			.then((response) => {
 				this.setState({items:response.data})
 			})
 	}
 	addItem(item){
-		axios.post('/api/item', {
+		axios.post('/api/items', {
 			name: item.name,
 			category: item.category
 		}).then((res)=>{
@@ -42,7 +42,7 @@ var ItemList = (props) => {
 		</table>);
 }
 
-class ItemInput extends React.Component {
+export class ItemInput extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state={name:"",category:""}
