@@ -5,30 +5,91 @@ import {ItemInput} from './items'
 export default class RecipesPage extends React.Component{
 	constructor(props){
 		super(props);
-		this.state = {"recipes": ["test"]}
+		this.state = {"recipes": [],
+						"recipe": {
+							"method": "create",
+							"show": false,
+							"current": null
+						}
+					}
 	}
 
 	componentDidMount(){
+		var recipes = []
 		axios.get('/api/meals')
 			.then((res)=>{
 				this.setState({"recipes": res.data})
-				console.log(res.data)
 			})
 	}
 
 	addRecipe(item){
+		console.log(item)
 		axios.post('/api/meals', item)
 			.then((res)=>{
 				this.setState((prev)=>{
-			return prev.recipes.push(item)
+					return prev.recipes.push(item)
+				})
+				this.toggleAdd()
+		})
+	}
+	showModify(item){
+		this.setState((prev)=>{
+			prev.recipe = {"method": "update",
+						   "show": true,
+						   "current": item}
+			return prev
+		})
+	}
+	modifyRecipe(item){
+		axios.put('/api/meals', item)
+			.then((res)=>{
+				this.setState({"recipe":
+								{"method": "update",
+								 "show": false,
+								 "current": null
+								}
+							})
 			})
+	}
+	deleteRecipe(meal){
+		axios.delete('/api/meals/' + meal)
+			.then((res)=>{
+				this.setState((prev)=>{
+					return prev.recipes.splice(prev.recipes.indexOf(meal), 1)
+				})
+			})
+	}
+	toggleAdd(){
+		this.setState((prev)=>{
+			prev["recipe"]["show"] = !prev["recipe"]["show"]
+			prev["recipe"]["current"] = null
+			return prev
 		})
 	}
 
+	prepareBody(){
+		var body = []
+		body.push(<RecipeList key="recipes" recipes={this.state.recipes} 
+							  showModify={this.showModify.bind(this)}
+							  thisdeleteRecipe={this.deleteRecipe.bind(this)}/>)
+		if(this.state.recipe.show){
+			if(this.state.recipe.method=="create"){
+				var f = this.addRecipe
+			} else if (this.state.recipe.method=="update"){
+				var f = this.modifyRecipe
+			}
+			body.push(<NewRecipe key="new" addRecipe={f.bind(this)} recipe={this.state.recipe.current} />)
+			body.push(<button key="cancel" onClick={this.toggleAdd.bind(this)}>Cancel</button>)
+		} else {
+			body.push(<button key="add" onClick={this.toggleAdd.bind(this)}>Add Recipe</button>)
+		}
+		return body
+	}
+
+
 	render() {
 		return (<div>
-					<RecipeList recipes={this.state.recipes}/>
-					<NewRecipe addRecipe={this.addRecipe.bind(this)}/>
+					{this.prepareBody()}
 				</div>)
 	}
 }
@@ -36,7 +97,13 @@ export default class RecipesPage extends React.Component{
 var RecipeList = (props) => {
 	var rows = []
 	props.recipes.forEach((item)=>{
-		rows.push(<tr key={item.mealname}><td>{item.mealname}</td></tr>)
+		rows.push(
+			<tr key={item.mealname}>
+				<td>{item.mealname}</td>
+				<td><a onClick={() => props.showModify(item)}>Modify</a></td>
+				<td><a onClick={() => props.deleteRecipe(item.mealname)}>Delete</a></td>
+			</tr>
+			)
 	})
 	return <table><tbody>{rows}</tbody></table>
 }
@@ -47,11 +114,28 @@ class NewRecipe extends React.Component{
 		this.state = {"ingredients": [], 
 					  "mealname": "", 
 					  "ingredient": "",
-					  "newIngredient": false}
+					  "quantity": 0,
+					  "unit": "",
+					  "newIngredient": false,
+					  "suggestions": []
+					}
+		if(props.recipe!=null){
+			this.state.ingredients = props.recipe.ingredients
+			this.state.mealname = props.recipe.mealname	
+		}
+	}
+
+	componentDidMount(){
+		axios.get('/api/items')
+			.then((res)=>{
+				this.setState({"suggestions": res.data})
+			})
 	}
 
 	saveRecipe(){
-		this.props.addRecipe(this.state)
+		var recipe = {ingredients: this.state.ingredients,
+				  mealname: this.state.mealname}
+		this.props.addRecipe(recipe)
 		this.setState((prev)=>{
 			prev.mealname = ""
 			prev.ingredients = []
@@ -64,14 +148,18 @@ class NewRecipe extends React.Component{
 		axios.get("/api/items/"+this.state.ingredient)
 			.then((res)=>{
 				this.setState((prev)=>{
-				prev.ingredients.push(prev.ingredient)
+				prev.ingredients.push({"name":prev.ingredient,
+									   "quantity": prev.quantity,
+									})
 				prev.ingredient = ""
+				prev.quantity = 0
 				return prev
 				})
 			})
 			.catch((res)=>{
 				this.setState({"newIngredient": true,
-							   "ingredient": ""})
+							   "ingredient": "",
+							   "quantity": 0})
 			})
 	}
 
@@ -87,17 +175,33 @@ class NewRecipe extends React.Component{
 		this.setState({[e.target.name]: e.target.value})
 	}
 
+	itemBlur(e){
+		this.state.suggestions.forEach((item)=>{
+			if(item.name==e.target.value){
+				this.setState({"unit":item.unit})
+			}
+
+		})
+	}
+
 	render() {
 		var rows = []
 		this.state.ingredients.forEach((item)=>{
-			rows.push(<tr key={item}><td>{item}</td></tr>)
+			rows.push(<tr key={item.name}><td>{item.name}</td></tr>)
+		})
+		var suggestions = []
+		this.state.suggestions.forEach((item)=>{
+			suggestions.push(<option>{item.name}</option>)
 		})
 		return (
 			<div>
 				<input name="mealname" value={this.state.mealname} onChange={this.updateInput.bind(this)}></input>
 				<h3>Ingredients</h3>
 				<table><tbody>{rows}</tbody></table>
-				<input name="ingredient" value={this.state.ingredient} onChange={this.updateInput.bind(this)}></input>
+				<input list="suggestions" name="ingredient" value={this.state.ingredient} onChange={this.updateInput.bind(this)} onBlur={this.itemBlur.bind(this)}></input>
+				<datalist id="suggestions">{suggestions}</datalist>
+				<input name="quantity" value={this.state.quantity} onChange={this.updateInput.bind(this)} />
+				{this.state.unit}
 				<button onClick={this.addItem.bind(this)}>Add</button><br/>
 				<button onClick={this.saveRecipe.bind(this)}>Save Recipe</button>
 				<CreateIngredient show={this.state.newIngredient} onIngredientCreation={this.onIngredientCreation.bind(this)} />

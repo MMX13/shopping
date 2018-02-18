@@ -34,11 +34,8 @@ router.get('/items/:item', (req, res)=>{
 })
 router.post('/items', (req, res)=>{
 	console.log(req.body)
-	item = {
-		"name": req.body.name,
-		"category": req.body.category
-	}
-	mydb.collection('items').insertOne(item)
+	delete(req.body._id)
+	mydb.collection('items').update({"name": req.body.name}, req.body, {upsert: true})
 	res.sendStatus(201)
 })
 router.get('/meals', (req, res)=>{
@@ -46,14 +43,36 @@ router.get('/meals', (req, res)=>{
 		res.send(arr)
 	})
 })
+router.get('/meals/:meal', (req, res)=>{
+	mydb.collection('meals').findOne({"mealname": req.params.meal}, (err, item)=>{
+		if(item){
+			res.send(item)
+		} else {
+			sendStatus(404)
+		}
+	})
+})
 router.post('/meals', (req, res)=>{
-	console.log(req.body)
-	mydb.collection('meals').insertOne(req.body)
-	res.sendStatus(201)
+	mydb.collection('meals').findOne({"mealname": req.body.mealname}, (err, item)=>{
+		if(item){
+			res.sendStatus(400)
+		} else {
+			mydb.collection('meals').insertOne(req.body)
+			res.sendStatus(201)
+		}
+	})
+})
+router.put('/meals', (req, res)=>{
+	mydb.collection('meals').update({"mealname": req.body.mealname}, req.body)
+	res.sendStatus(200)
+})
+router.delete('/meals/:meal', (req, res)=>{
+	mydb.collection('meals').remove({"mealname": req.params.meal})
+	res.sendStatus(200)
 })
 app.use('/api', router)
 
-app.get('/', (req, res)=>{
+app.get(/\/$/, (req, res)=>{
 	res.sendFile(__dirname+'/index.html')
 })
 app.use(express.static(__dirname+'/'))

@@ -21,7 +21,7 @@ class Header extends React.Component {
 class Body extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {"location": "home"}
+		this.state = {"location": window.location.hash.split('#')[1] || 'home'}
 	}
 
 	updateLocation(location){
@@ -30,10 +30,13 @@ class Body extends React.Component {
 
 	prepareBody(){
 		if(this.state.location=="items"){
+			window.location.hash = "items";
 			return <ItemsPage />
 		}else if(this.state.location=="meals"){
+			window.location.hash = "meals";
 			return <RecipesPage />
 		}else{
+			window.location.hash = "";
 			return <HomePage />
 		}
 	}
