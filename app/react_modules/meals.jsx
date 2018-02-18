@@ -52,7 +52,7 @@ export default class RecipesPage extends React.Component{
 			})
 	}
 	deleteRecipe(meal){
-		axios.delete('/api/meals/' + meal)
+		axios.delete('/api/meals/' + meal.mealname)
 			.then((res)=>{
 				this.setState((prev)=>{
 					return prev.recipes.splice(prev.recipes.indexOf(meal), 1)
@@ -71,7 +71,7 @@ export default class RecipesPage extends React.Component{
 		var body = []
 		body.push(<RecipeList key="recipes" recipes={this.state.recipes} 
 							  showModify={this.showModify.bind(this)}
-							  thisdeleteRecipe={this.deleteRecipe.bind(this)}/>)
+							  deleteRecipe={this.deleteRecipe.bind(this)}/>)
 		if(this.state.recipe.show){
 			if(this.state.recipe.method=="create"){
 				var f = this.addRecipe
@@ -101,7 +101,7 @@ var RecipeList = (props) => {
 			<tr key={item.mealname}>
 				<td>{item.mealname}</td>
 				<td><a onClick={() => props.showModify(item)}>Modify</a></td>
-				<td><a onClick={() => props.deleteRecipe(item.mealname)}>Delete</a></td>
+				<td><a onClick={() => props.deleteRecipe(item)}>Delete</a></td>
 			</tr>
 			)
 	})
@@ -145,24 +145,58 @@ class NewRecipe extends React.Component{
 	}
 
 	addItem(){
+		console.log(this.state)
 		axios.get("/api/items/"+this.state.ingredient)
 			.then((res)=>{
-				this.setState((prev)=>{
-				prev.ingredients.push({"name":prev.ingredient,
-									   "quantity": prev.quantity,
-									})
-				prev.ingredient = ""
-				prev.quantity = 0
-				return prev
-				})
+				var item = {"name": this.state.ingredient,
+						"quantity": this.state.quantity}
+				console.log(item)
+				var i = -1
+				for(var x=0; x<this.state.ingredients.length; x++){
+					if(this.state.ingredients[x].name == this.state.ingredient){
+						i = x;
+						break
+					}
+				}
+				if(i>-1){
+					this.setState((prev)=>{
+						prev.ingredients[i] = item
+						prev.ingredient = ""
+						prev.quantity = 0
+						return prev
+					})
+				} else {
+					this.setState((prev)=>{
+						prev.ingredients.push(item)
+						prev.ingredient = ""
+						prev.quantity = 0
+						return prev
+					})
+				}
 			})
 			.catch((res)=>{
+				console.log(res)
 				this.setState({"newIngredient": true,
 							   "ingredient": "",
 							   "quantity": 0})
 			})
 	}
 
+	modifyIngredient(ingredient){
+		this.setState({"ingredient": ingredient.name,
+					   "quantity": ingredient.quantity})
+	}
+
+	deleteIngredient(target){
+		this.state.ingredients.forEach((ingredient, i)=>{
+			if(ingredient.name == target){
+				this.setState((prev)=>{
+					prev.ingredients.splice(i, 1)
+					return prev
+				})
+			}
+		})
+	}
 	onIngredientCreation(item){
 		this.setState((prev)=>{
 			prev.ingredients.push(item)
@@ -187,7 +221,10 @@ class NewRecipe extends React.Component{
 	render() {
 		var rows = []
 		this.state.ingredients.forEach((item)=>{
-			rows.push(<tr key={item.name}><td>{item.name}</td></tr>)
+			rows.push(<tr key={item.name}>
+						<td>{item.name}</td>
+						<td><a onClick={()=>this.modifyIngredient(item)}>Modify</a></td>
+						<td><a onClick={()=>this.deleteIngredient(item.name)}>Delete</a></td></tr>)
 		})
 		var suggestions = []
 		this.state.suggestions.forEach((item)=>{
@@ -216,7 +253,7 @@ var CreateIngredient = (props) => {
 			category: item.category
 		}).then((res)=>{
 			props.onIngredientCreation(item.name)
-		})		
+		})
 	}
 	if(props.show)
 	{
