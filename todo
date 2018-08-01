@@ -1,0 +1,10 @@
+Add Item
+Categories should be a drop down
+
+Modify Meal
+After creating a new ingredient, it should not be added to the recipe
+When adding an ingredient, prepopulate the create item name
+Deleting an item shouldn't delete until 'save recipe' has been clicked
+Display the quantity in the ingredients list
+
+Break express script into multiple files.

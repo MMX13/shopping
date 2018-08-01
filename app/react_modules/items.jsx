@@ -28,9 +28,20 @@ export default class ItemsPage extends React.Component {
 		this.forceUpdate()
 	}
 
+	deleteItem(item){
+		axios.delete('/api/items/' + item.name)
+			.then((res)=>{
+				axios.get('/api/items')
+					.then((res)=>{
+						this.setState({items: res.data})
+					})
+			})
+	}
+
+
 	render() {
 		return (<div>
-			<ItemList items={this.state.items} modifyItem={this.modifyItem.bind(this)} />
+			<ItemList items={this.state.items} modifyItem={this.modifyItem.bind(this)} deleteItem={this.deleteItem.bind(this)}/>
 			<ItemInput addItem={this.addItem.bind(this)} item={this.state.item} />
 			</div>);
 	}
@@ -43,7 +54,7 @@ var ItemList = (props) => {
 									  <td>{item.category}</td>
 									  <td>{item.unit}</td>
 									  <td><a onClick={()=>props.modifyItem(item)}>Modify</a></td>
-									  <td><a>Delete</a></td></tr>)
+									  <td><a onClick={()=>props.deleteItem(item)}>Delete</a></td></tr>)
 	})
 	return (<table>
 		<thead><tr>
@@ -62,7 +73,7 @@ export class ItemInput extends React.Component {
 		if(props.item){
 			this.state=props.item
 		} else {
-			this.state={name:"",category:""}
+			this.state={name:"",category:"",unit:"Units"}
 		}
 	}
 	componentWillReceiveProps(props){

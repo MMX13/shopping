@@ -199,8 +199,12 @@ class NewRecipe extends React.Component{
 	}
 	onIngredientCreation(item){
 		this.setState((prev)=>{
-			prev.ingredients.push(item)
+			console.log(item)
+			prev.ingredient = item.name
 			prev.newIngredient = false
+			console.log(prev.suggestions)
+			prev.suggestions.push(item)
+			console.log(prev.suggestions)
 			return prev
 			})
 	}
@@ -210,12 +214,6 @@ class NewRecipe extends React.Component{
 	}
 
 	itemBlur(e){
-		this.state.suggestions.forEach((item)=>{
-			if(item.name==e.target.value){
-				this.setState({"unit":item.unit})
-			}
-
-		})
 	}
 
 	render() {
@@ -227,8 +225,12 @@ class NewRecipe extends React.Component{
 						<td><a onClick={()=>this.deleteIngredient(item.name)}>Delete</a></td></tr>)
 		})
 		var suggestions = []
+		var unit = ""
 		this.state.suggestions.forEach((item)=>{
 			suggestions.push(<option>{item.name}</option>)
+			if(item.name==this.state.ingredient){
+				unit = item.unit
+			}
 		})
 		return (
 			<div>
@@ -237,8 +239,8 @@ class NewRecipe extends React.Component{
 				<table><tbody>{rows}</tbody></table>
 				<input list="suggestions" name="ingredient" value={this.state.ingredient} onChange={this.updateInput.bind(this)} onBlur={this.itemBlur.bind(this)}></input>
 				<datalist id="suggestions">{suggestions}</datalist>
-				<input name="quantity" value={this.state.quantity} onChange={this.updateInput.bind(this)} />
-				{this.state.unit}
+				{unit && <input name="quantity" value={this.state.quantity} onChange={this.updateInput.bind(this)} />}
+				{unit}
 				<button onClick={this.addItem.bind(this)}>Add</button><br/>
 				<button onClick={this.saveRecipe.bind(this)}>Save Recipe</button>
 				<CreateIngredient show={this.state.newIngredient} onIngredientCreation={this.onIngredientCreation.bind(this)} />
@@ -250,9 +252,10 @@ var CreateIngredient = (props) => {
 	function addIngredient(item){
 		axios.post('/api/items', {
 			name: item.name,
-			category: item.category
+			category: item.category,
+			unit: item.unit
 		}).then((res)=>{
-			props.onIngredientCreation(item.name)
+			props.onIngredientCreation(item)
 		})
 	}
 	if(props.show)

@@ -38,6 +38,11 @@ router.post('/items', (req, res)=>{
 	mydb.collection('items').update({"name": req.body.name}, req.body, {upsert: true})
 	res.sendStatus(201)
 })
+router.delete('/items/:item', (req, res)=>{
+	mydb.collection('items').remove({"name":req.params.item})
+	res.sendStatus(200)
+})
+
 router.get('/meals', (req, res)=>{
 	mydb.collection('meals').find().toArray((err, arr)=>{
 		res.send(arr)
