@@ -234,8 +234,10 @@ class NewRecipe extends React.Component{
 		})
 		return (
 			<div>
+				<hr/>
+				<h3>New Meal</h3>
 				<input name="mealname" value={this.state.mealname} onChange={this.updateInput.bind(this)}></input>
-				<h3>Ingredients</h3>
+				<h4>Ingredients</h4>
 				<table><tbody>{rows}</tbody></table>
 				<input list="suggestions" name="ingredient" value={this.state.ingredient} onChange={this.updateInput.bind(this)} onBlur={this.itemBlur.bind(this)}></input>
 				<datalist id="suggestions">{suggestions}</datalist>
